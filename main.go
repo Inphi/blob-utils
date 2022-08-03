@@ -42,15 +42,15 @@ func main() {
 }
 
 func TxApp(cliCtx *cli.Context) error {
-	addr := cliCtx.GlobalString(TxRPCURLFlag.Name)
-	to := common.HexToAddress(cliCtx.GlobalString(TxToFlag.Name))
-	prv := cliCtx.GlobalString(TxPrivateKeyFlag.Name)
-	file := cliCtx.GlobalString(TxBlobFileFlag.Name)
-	nonce := cliCtx.GlobalInt64(TxNonceFlag.Name)
-	value := cliCtx.GlobalString(TxValueFlag.Name)
-	gasLimit := cliCtx.GlobalUint64(TxGasLimitFlag.Name)
-	gasPrice := cliCtx.GlobalString(TxGasPriceFlag.Name)
-	priorityGasPrice := cliCtx.GlobalString(TxPriorityGasPrice.Name)
+	addr := cliCtx.String(TxRPCURLFlag.Name)
+	to := common.HexToAddress(cliCtx.String(TxToFlag.Name))
+	prv := cliCtx.String(TxPrivateKeyFlag.Name)
+	file := cliCtx.String(TxBlobFileFlag.Name)
+	nonce := cliCtx.Int64(TxNonceFlag.Name)
+	value := cliCtx.String(TxValueFlag.Name)
+	gasLimit := cliCtx.Uint64(TxGasLimitFlag.Name)
+	gasPrice := cliCtx.String(TxGasPriceFlag.Name)
+	priorityGasPrice := cliCtx.String(TxPriorityGasPrice.Name)
 
 	value256, err := uint256.FromHex(value)
 	if err != nil {

@@ -51,9 +51,9 @@ var (
 	}
 
 	DownloadBeaconP2PAddr = cli.StringFlag{
-		Name:     "beacon-p2p-addr",
-		Usage:    "P2P address of beacon node",
-		Required: true,
+		Name:  "beacon-p2p-addr",
+		Usage: "P2P multiaddr of the beacon node",
+		Value: "/ip4/127.0.0.1/tcp/13000",
 	}
 	DownloadSlotFlag = cli.Int64Flag{
 		Name:     "slot",

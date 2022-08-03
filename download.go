@@ -27,8 +27,8 @@ import (
 )
 
 func DownloadApp(cliCtx *cli.Context) error {
-	addr := cliCtx.GlobalString(DownloadBeaconP2PAddr.Name)
-	slot := cliCtx.GlobalInt64(DownloadSlotFlag.Name)
+	addr := cliCtx.String(DownloadBeaconP2PAddr.Name)
+	slot := cliCtx.Int64(DownloadSlotFlag.Name)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
