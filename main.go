@@ -90,10 +90,10 @@ func TxApp(cliCtx *cli.Context) error {
 		if err != nil {
 			log.Fatalf("Error getting suggested gas price: %v", err)
 		}
-		var ok bool
-		gasPrice256, ok = uint256.FromBig(val)
-		if !ok {
-			log.Fatalf("gas price is too high!")
+		var nok bool
+		gasPrice256, nok = uint256.FromBig(val)
+		if nok {
+			log.Fatalf("gas price is too high! got %v", val.String())
 		}
 	} else {
 		gasPrice256, err = decodeUint25Sting(gasPrice)
@@ -159,8 +159,8 @@ func decodeUint25Sting(hexOrDecimal string) (*uint256.Int, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid value")
 	}
-	val256, ok := uint256.FromBig(b)
-	if !ok {
+	val256, nok := uint256.FromBig(b)
+	if nok {
 		return nil, fmt.Errorf("value is too big")
 	}
 	return val256, nil
