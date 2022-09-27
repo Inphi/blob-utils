@@ -1,8 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"math/big"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/holiman/uint256"
 	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 )
 
@@ -42,4 +47,20 @@ func DecodeBlobs(sidecar *ethpb.BlobsSidecar) []byte {
 	}
 	data = data[:i+1]
 	return data
+}
+
+func DecodeUint256String(hexOrDecimal string) (*uint256.Int, error) {
+	var base = 10
+	if strings.HasPrefix(hexOrDecimal, "0x") {
+		base = 16
+	}
+	b, ok := new(big.Int).SetString(hexOrDecimal, base)
+	if !ok {
+		return nil, fmt.Errorf("invalid value")
+	}
+	val256, nok := uint256.FromBig(b)
+	if nok {
+		return nil, fmt.Errorf("value is too big")
+	}
+	return val256, nil
 }
