@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -47,43 +48,45 @@ type TestCaseResult struct {
 
 func TestGenerateTestVectors(t *testing.T) {
 	fmt.Println("Generating test vectors...")
+
 	chainId := big.NewInt(1331)
 	signer := types.NewDankSigner(chainId)
 
+	data8Bytes := make([]byte, 8)
+	data128Bytes := make([]byte, 128)
+	data256Bytes := make([]byte, 256)
+	data1024Bytes := make([]byte, 1024)
+	rand.Read(data8Bytes)
+	rand.Read(data128Bytes)
+	rand.Read(data256Bytes)
+	rand.Read(data1024Bytes)
+
+	// Define test cases
 	testCaseInputs := []TestCaseInput{
-		{"aa3a09289747a62b7b8190af3a75544cbe8c3b4a58f7b11d8d3b12ad17300a59", "0x45Ae5777c9b35Eb16280e423b0d7c91C06C66B58", 1, "1", int64(100000), "1000", "50", "0x1234"},
-		{"67f45650acc5dc426fc424348f8d9f07032c439f03797c4beba096a6e23e666b", "0x549A51956bd364D8bB2Efb1F1eA4436e8D7764Ff", 2, "1", int64(50000), "1234", "100", "0xABCDEF"},
-		{"2e2b5c749eab38b8eca6b788c70429580ffa8eb79ab9635b95af00c6f6cba661", "0xa39c4e1B259473fbcC5213a0613eB53a8C50bf76", 3, "1", int64(70000), "999", "10", "0x9988"},
-		{"ee15ba623c2a495eefc9b8dc7447ff70bee325cc1f75f5170a71dc4dd3227f13", "0xd59399657A78bb69dEE83C416C13Be711e02fA23", 4, "1", int64(21000), "1001", "35", "0x01"},
+		{"aa3a09289747a62b7b8190af3a75544cbe8c3b4a58f7b11d8d3b12ad17300a59", "0x45Ae5777c9b35Eb16280e423b0d7c91C06C66B58", 1, "1", int64(100000), "1000", "50", hexutil.Encode(data8Bytes)},
+		{"67f45650acc5dc426fc424348f8d9f07032c439f03797c4beba096a6e23e666b", "0x549A51956bd364D8bB2Efb1F1eA4436e8D7764Ff", 2, "1", int64(50000), "1234", "100", hexutil.Encode(data128Bytes)},
+		{"2e2b5c749eab38b8eca6b788c70429580ffa8eb79ab9635b95af00c6f6cba661", "0xa39c4e1B259473fbcC5213a0613eB53a8C50bf76", 3, "1", int64(70000), "999", "10", hexutil.Encode(data256Bytes)},
+		{"ee15ba623c2a495eefc9b8dc7447ff70bee325cc1f75f5170a71dc4dd3227f13", "0xd59399657A78bb69dEE83C416C13Be711e02fA23", 4, "1", int64(21000), "1001", "35", hexutil.Encode(data1024Bytes)},
 	}
 
-	testCaseOutputs := []TestCaseOutput{}
+	summary := []TestCaseResult{}
+
 	for _, testCaseInput := range testCaseInputs {
 		testCaseOutput, err := generateTestVector(chainId, signer, testCaseInput)
 		assert.Nil(t, err)
-		if testCaseOutput != nil {
-			testCaseOutputs = append(testCaseOutputs, *testCaseOutput)
-		}
-	}
-
-	outputFilePath := "/tmp/eip4844_test_vectors.txt"
-	outputFile, _ := os.Create(outputFilePath)
-	summary := []TestCaseResult{}
-	for _, testCaseOutput := range testCaseOutputs {
 		txAsRawData, _ := testCaseOutput.transaction.MarshalBinary()
 		txRawHex := hexutil.Encode(txAsRawData)
 		result := TestCaseResult{testCaseOutput.testCase, txRawHex}
 		summary = append(summary, result)
-		/*outputFile.WriteString(fmt.Sprintf("Test case [%d]\n", i))
-		outputFile.WriteString("Input: \n")
-		outputFile.WriteString(fmt.Sprintf("%v\n", testCaseOutput.testCase))
-		outputFile.WriteString("Output: \n")
-		outputFile.WriteString(hexutil.Encode(txAsRawData))
-		outputFile.WriteString("\n\n")*/
 	}
-	summaryAsJson, _ := json.Marshal(summary)
-	outputFile.WriteString(string(summaryAsJson))
 
+	// Generate JSON summary
+	summaryAsJson, _ := json.MarshalIndent(summary, "", "\t")
+	// Write summary in output file
+	outputFilePath := "/tmp/eip4844_test_vectors.json"
+	outputFile, err := os.Create(outputFilePath)
+	assert.Nil(t, err)
+	outputFile.WriteString(string(summaryAsJson))
 }
 
 func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput TestCaseInput) (*TestCaseOutput, error) {
