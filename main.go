@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/big"
 	"os"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -96,7 +95,7 @@ func TxApp(cliCtx *cli.Context) error {
 			log.Fatalf("gas price is too high! got %v", val.String())
 		}
 	} else {
-		gasPrice256, err = decodeUint25Sting(gasPrice)
+		gasPrice256, err = DecodeUint256String(gasPrice)
 		if err != nil {
 			return fmt.Errorf("%w: invalid gas price", err)
 		}
@@ -104,7 +103,7 @@ func TxApp(cliCtx *cli.Context) error {
 
 	priorityGasPrice256 := gasPrice256
 	if priorityGasPrice != "" {
-		priorityGasPrice256, err = decodeUint25Sting(priorityGasPrice)
+		priorityGasPrice256, err = DecodeUint256String(priorityGasPrice)
 		if err != nil {
 			return fmt.Errorf("%w: invalid priority gas price", err)
 		}
@@ -148,20 +147,4 @@ func TxApp(cliCtx *cli.Context) error {
 	log.Printf("Transaction submitted. nonce=%d hash=%v", nonce, tx.Hash())
 
 	return nil
-}
-
-func decodeUint25Sting(hexOrDecimal string) (*uint256.Int, error) {
-	var base = 10
-	if strings.HasPrefix(hexOrDecimal, "0x") {
-		base = 16
-	}
-	b, ok := new(big.Int).SetString(hexOrDecimal, base)
-	if !ok {
-		return nil, fmt.Errorf("invalid value")
-	}
-	val256, nok := uint256.FromBig(b)
-	if nok {
-		return nil, fmt.Errorf("value is too big")
-	}
-	return val256, nil
 }

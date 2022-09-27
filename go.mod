@@ -11,6 +11,7 @@ require (
 	github.com/multiformats/go-multiaddr v0.6.0
 	github.com/protolambda/ztyp v0.2.2
 	github.com/prysmaticlabs/prysm v0.0.0-00010101000000-000000000000
+	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.9
 )
 
@@ -125,6 +126,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.35.0 // indirect
@@ -180,6 +182,7 @@ require (
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apimachinery v0.18.3 // indirect
 	k8s.io/client-go v0.18.3 // indirect
 	k8s.io/klog v1.0.0 // indirect
