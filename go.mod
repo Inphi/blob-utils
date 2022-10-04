@@ -3,7 +3,6 @@ module github.com/inphi/blob-utils
 go 1.18
 
 require (
-	github.com/Inphi/eip4844-interop v0.0.0-20220802040132-d77323493978
 	github.com/ethereum/go-ethereum v1.10.18
 	github.com/holiman/uint256 v1.2.0
 	github.com/libp2p/go-libp2p v0.20.3

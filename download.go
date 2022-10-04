@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Inphi/eip4844-interop/shared"
 	"github.com/urfave/cli"
 
 	ma "github.com/multiformats/go-multiaddr"
@@ -25,6 +24,11 @@ import (
 	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
 	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 )
+
+func init() {
+	// Done to ensure that we are able to download blob chunks with larger chunk sizes (that is 10 MiB post-bellatrix)
+	encoder.MaxChunkSize = 10 << 20
+}
 
 func DownloadApp(cliCtx *cli.Context) error {
 	addr := cliCtx.String(DownloadBeaconP2PAddr.Name)
@@ -77,15 +81,10 @@ func DownloadApp(cliCtx *cli.Context) error {
 		}
 
 		anyBlobs = true
-		data := shared.DecodeBlobs(sidecar)
-		i := len(data) - 1
-		for ; i >= 0; i-- {
-			if data[i] != 0x00 {
-				break
-			}
+		for _, blob := range sidecar.Blobs {
+			data := DecodeBlob(blob.Blob)
+			_, _ = os.Stdout.Write(data)
 		}
-		data = data[:i+1]
-		_, _ = os.Stdout.Write(data)
 
 		// stop after the first sidecar with blobs:
 		break
