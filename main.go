@@ -50,6 +50,8 @@ func TxApp(cliCtx *cli.Context) error {
 	gasLimit := cliCtx.Uint64(TxGasLimitFlag.Name)
 	gasPrice := cliCtx.String(TxGasPriceFlag.Name)
 	priorityGasPrice := cliCtx.String(TxPriorityGasPrice.Name)
+	maxFeePerDataGas := cliCtx.String(TxMaxFeePerDataGas.Name)
+	chainID := cliCtx.String(TxChainID.Name)
 
 	value256, err := uint256.FromHex(value)
 	if err != nil {
@@ -61,7 +63,7 @@ func TxApp(cliCtx *cli.Context) error {
 		return fmt.Errorf("error reading blob file: %v", err)
 	}
 
-	chainId := big.NewInt(1331)
+	chainId, _ := new(big.Int).SetString(chainID, 0)
 	signer := types.NewDankSigner(chainId)
 
 	ctx := context.Background()
@@ -109,6 +111,11 @@ func TxApp(cliCtx *cli.Context) error {
 		}
 	}
 
+	maxFeePerDataGas256, err := DecodeUint256String(maxFeePerDataGas)
+	if err != nil {
+		return fmt.Errorf("%w: invalid max_fee_per_data_gas", err)
+	}
+
 	blobs := EncodeBlobs(data)
 	commitments, versionedHashes, aggregatedProof, err := blobs.ComputeCommitmentsAndAggregatedProof()
 	if err != nil {
@@ -122,6 +129,7 @@ func TxApp(cliCtx *cli.Context) error {
 			Gas:                 view.Uint64View(gasLimit),
 			GasFeeCap:           view.Uint256View(*gasPrice256),
 			GasTipCap:           view.Uint256View(*priorityGasPrice256),
+			MaxFeePerDataGas:    view.Uint256View(*maxFeePerDataGas256), // needs to be at least the min fee
 			Value:               view.Uint256View(*value256),
 			To:                  types.AddressOptionalSSZ{Address: (*types.AddressSSZ)(&to)},
 			BlobVersionedHashes: versionedHashes,

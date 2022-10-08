@@ -49,6 +49,16 @@ var (
 		Usage: "Sets the priority fee per gas",
 		Value: "2000000000",
 	}
+	TxMaxFeePerDataGas = cli.StringFlag{
+		Name:  "max-fee-per-data-gas",
+		Usage: "Sets the max_fee_per_data_gas",
+		Value: "3000000000",
+	}
+	TxChainID = cli.StringFlag{
+		Name:  "chain-id",
+		Usage: "chain-id of the transaction",
+		Value: "1332",
+	}
 
 	DownloadBeaconP2PAddr = cli.StringFlag{
 		Name:  "beacon-p2p-addr",
@@ -72,6 +82,8 @@ var TxFlags = []cli.Flag{
 	TxGasLimitFlag,
 	TxGasPriceFlag,
 	TxPriorityGasPrice,
+	TxMaxFeePerDataGas,
+	TxChainID,
 }
 
 var DownloadFlags = []cli.Flag{

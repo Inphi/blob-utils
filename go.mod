@@ -193,7 +193,7 @@ require (
 
 )
 
-replace github.com/ethereum/go-ethereum => github.com/mdehoog/go-ethereum v1.10.19-0.20221004055417-f673a93c5614
+replace github.com/ethereum/go-ethereum => github.com/mdehoog/go-ethereum v1.10.19-0.20221008022208-0aa8f1ddceb2
 
 replace github.com/prysmaticlabs/prysm => github.com/inphi/prysm v1.4.2-0.20220801150729-a5eeff6cf45a
 
