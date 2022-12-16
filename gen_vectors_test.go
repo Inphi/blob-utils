@@ -27,6 +27,7 @@ type TestCaseInput struct {
 	GasLimit         int64
 	GasPrice         string
 	PriorityGasPrice string
+	MaxFeePerDataGas string
 	Data             string
 }
 
@@ -63,10 +64,10 @@ func TestGenerateTestVectors(t *testing.T) {
 
 	// Define test cases
 	testCaseInputs := []TestCaseInput{
-		{"aa3a09289747a62b7b8190af3a75544cbe8c3b4a58f7b11d8d3b12ad17300a59", "0x45Ae5777c9b35Eb16280e423b0d7c91C06C66B58", 1, "1", int64(100000), "1000", "50", hexutil.Encode(data8Bytes)},
-		{"67f45650acc5dc426fc424348f8d9f07032c439f03797c4beba096a6e23e666b", "0x549A51956bd364D8bB2Efb1F1eA4436e8D7764Ff", 2, "1", int64(50000), "1234", "100", hexutil.Encode(data128Bytes)},
-		{"2e2b5c749eab38b8eca6b788c70429580ffa8eb79ab9635b95af00c6f6cba661", "0xa39c4e1B259473fbcC5213a0613eB53a8C50bf76", 3, "1", int64(70000), "999", "10", hexutil.Encode(data256Bytes)},
-		{"ee15ba623c2a495eefc9b8dc7447ff70bee325cc1f75f5170a71dc4dd3227f13", "0xd59399657A78bb69dEE83C416C13Be711e02fA23", 4, "1", int64(21000), "1001", "35", hexutil.Encode(data1024Bytes)},
+		{"aa3a09289747a62b7b8190af3a75544cbe8c3b4a58f7b11d8d3b12ad17300a59", "0x45Ae5777c9b35Eb16280e423b0d7c91C06C66B58", 1, "1", int64(100000), "1000", "50", "100", hexutil.Encode(data8Bytes)},
+		{"67f45650acc5dc426fc424348f8d9f07032c439f03797c4beba096a6e23e666b", "0x549A51956bd364D8bB2Efb1F1eA4436e8D7764Ff", 2, "1", int64(50000), "1234", "100", "200", hexutil.Encode(data128Bytes)},
+		{"2e2b5c749eab38b8eca6b788c70429580ffa8eb79ab9635b95af00c6f6cba661", "0xa39c4e1B259473fbcC5213a0613eB53a8C50bf76", 3, "1", int64(70000), "999", "10", "20", hexutil.Encode(data256Bytes)},
+		{"ee15ba623c2a495eefc9b8dc7447ff70bee325cc1f75f5170a71dc4dd3227f13", "0xd59399657A78bb69dEE83C416C13Be711e02fA23", 4, "1", int64(21000), "1001", "35", "70", hexutil.Encode(data1024Bytes)},
 	}
 
 	summary := []TestCaseResult{}
@@ -99,6 +100,7 @@ func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput Tes
 	// Encode fields
 	gasPrice256, _ := DecodeUint256String(testCaseInput.GasPrice)
 	priorityGasPrice256, _ := DecodeUint256String(testCaseInput.PriorityGasPrice)
+	maxFeePerDataGas256, _ := DecodeUint256String(testCaseInput.MaxFeePerDataGas)
 	value256, _ := DecodeUint256String(testCaseInput.Value)
 	to := common.HexToAddress(testCaseInput.To)
 
@@ -110,6 +112,7 @@ func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput Tes
 			Gas:                 view.Uint64View(testCaseInput.GasLimit),
 			GasFeeCap:           view.Uint256View(*gasPrice256),
 			GasTipCap:           view.Uint256View(*priorityGasPrice256),
+			MaxFeePerDataGas:    view.Uint256View(*maxFeePerDataGas256),
 			Value:               view.Uint256View(*value256),
 			To:                  types.AddressOptionalSSZ{Address: (*types.AddressSSZ)(&to)},
 			BlobVersionedHashes: versionedHashes,
