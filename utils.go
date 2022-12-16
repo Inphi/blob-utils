@@ -30,20 +30,16 @@ func EncodeBlobs(data []byte) types.Blobs {
 	return blobs
 }
 
-func DecodeBlob(blob [][]byte) []byte {
-	var data []byte
-	for _, b := range blob {
-		data = append(data, b[0:31]...)
-	}
+func DecodeBlob(blob []byte) []byte {
 	// XXX: the following removes trailing 0s, which could be unexpected for certain blobs
-	i := len(data) - 1
+	i := len(blob) - 1
 	for ; i >= 0; i-- {
-		if data[i] != 0x00 {
+		if blob[i] != 0x00 {
 			break
 		}
 	}
-	data = data[:i+1]
-	return data
+	blob = blob[:i+1]
+	return blob
 }
 
 func DecodeUint256String(hexOrDecimal string) (*uint256.Int, error) {
