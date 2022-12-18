@@ -67,7 +67,7 @@ func DownloadApp(cliCtx *cli.Context) error {
 
 	sidecars, err := sendBlobsSidecarsByRangeRequest(ctx, h, encoder.SszNetworkEncoder{}, addrInfo.ID, req)
 	if err != nil {
-		return fmt.Errorf("%w: unable to get send blobs RPC request", err)
+		return fmt.Errorf("%w: unable to send blobs RPC request", err)
 	}
 
 	anyBlobs := false

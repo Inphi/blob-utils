@@ -31,15 +31,26 @@ func EncodeBlobs(data []byte) types.Blobs {
 }
 
 func DecodeBlob(blob []byte) []byte {
-	// XXX: the following removes trailing 0s, which could be unexpected for certain blobs
-	i := len(blob) - 1
+	if len(blob) != params.FieldElementsPerBlob*32 {
+		panic("invalid blob encoding")
+	}
+	var data []byte
+
+	// XXX: the following removes trailing 0s in each field element (see EncodeBlobs), which could be unexpected for certain blobs
+	j := 0
+	for i := 0; i < params.FieldElementsPerBlob; i++ {
+		data = append(data, blob[j:j+31]...)
+		j += 32
+	}
+
+	i := len(data) - 1
 	for ; i >= 0; i-- {
-		if blob[i] != 0x00 {
+		if data[i] != 0x00 {
 			break
 		}
 	}
-	blob = blob[:i+1]
-	return blob
+	data = data[:i+1]
+	return data
 }
 
 func DecodeUint256String(hexOrDecimal string) (*uint256.Int, error) {
