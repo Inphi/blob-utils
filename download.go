@@ -175,6 +175,11 @@ func readChunkedBlobsSidecar(stream libp2pcore.Stream, encoding encoder.NetworkE
 	if code != 0 {
 		return nil, errors.New(errMsg)
 	}
+	// ignored: we assume we got the correct context
+	b := make([]byte, 4)
+	if _, err := stream.Read(b); err != nil {
+		return nil, err
+	}
 	sidecar := new(ethpb.BlobsSidecar)
 	err = encoding.DecodeWithMaxLength(stream, sidecar)
 	return sidecar, err
