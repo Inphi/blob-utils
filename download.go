@@ -16,9 +16,12 @@ import (
 	"github.com/libp2p/go-libp2p"
 	libp2pcore "github.com/libp2p/go-libp2p/core"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
+	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
 
+	"github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/p2p"
 	"github.com/prysmaticlabs/prysm/v3/beacon-chain/p2p/encoder"
 	p2ptypes "github.com/prysmaticlabs/prysm/v3/beacon-chain/p2p/types"
@@ -44,13 +47,28 @@ func DownloadApp(cliCtx *cli.Context) error {
 		Count:     1,
 	}
 
-	h, err := libp2p.New()
+	h, err := libp2p.New(libp2p.Transport(tcp.NewTCPTransport))
 	if err != nil {
 		return err
 	}
 	defer func() {
 		_ = h.Close()
 	}()
+	h.RemoveStreamHandler(identify.IDDelta)
+	// setup enough handlers so we look like a beacon peer
+	// Some clients, including lighthouse, expect a minimum set of protocols before completing
+	// a libp2p connection
+	setHandler(h, p2p.RPCPingTopicV1, pingHandler)
+	setHandler(h, p2p.RPCGoodByeTopicV1, pingHandler)
+	setHandler(h, p2p.RPCMetaDataTopicV1, pingHandler)
+	setHandler(h, p2p.RPCMetaDataTopicV2, pingHandler)
+
+	nilHandler := func(ctx context.Context, i interface{}, stream network.Stream) error {
+		return nil
+	}
+	setHandler(h, p2p.RPCBlocksByRangeTopicV1, nilHandler)
+	setHandler(h, p2p.RPCBlocksByRangeTopicV2, nilHandler)
+	setHandler(h, p2p.RPCBlobsSidecarsByRangeTopicV1, nilHandler)
 
 	multiaddr, err := getMultiaddr(ctx, h, addr)
 	if err != nil {
