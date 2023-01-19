@@ -8,6 +8,8 @@ require (
 	github.com/libp2p/go-libp2p v0.24.0
 	github.com/multiformats/go-multiaddr v0.8.0
 	github.com/protolambda/ztyp v0.2.2
+	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44
+	github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7
 	github.com/prysmaticlabs/prysm/v3 v3.2.0-rc.0.0.20221215090238-7866e8a1967f
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli v1.22.9
@@ -124,8 +126,6 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/prometheus/prom2json v1.3.0 // indirect
 	github.com/protolambda/go-kzg v0.0.0-20221129234330-612948a21fb0 // indirect
-	github.com/prysmaticlabs/fastssz v0.0.0-20221107182844-78142813af44 // indirect
-	github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7 // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.2-alpha // indirect
 	github.com/prysmaticlabs/prombbolt v0.0.0-20210126082820-9b7adba6db7c // indirect
 	github.com/raulk/go-watchdog v1.3.0 // indirect
@@ -186,4 +186,4 @@ require (
 
 )
 
-replace github.com/ethereum/go-ethereum => github.com/mdehoog/go-ethereum v1.10.19-0.20221208223223-b697b4457653
+replace github.com/ethereum/go-ethereum => github.com/mdehoog/go-ethereum v1.10.19-0.20230108160323-2b556dbb6624
