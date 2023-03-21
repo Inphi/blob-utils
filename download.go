@@ -21,13 +21,12 @@ import (
 	"github.com/libp2p/go-libp2p/core/protocol"
 	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
 
-	"github.com/libp2p/go-libp2p/p2p/protocol/identify"
-	"github.com/prysmaticlabs/prysm/v3/beacon-chain/p2p"
-	"github.com/prysmaticlabs/prysm/v3/beacon-chain/p2p/encoder"
-	p2ptypes "github.com/prysmaticlabs/prysm/v3/beacon-chain/p2p/types"
-	"github.com/prysmaticlabs/prysm/v3/beacon-chain/sync"
-	types "github.com/prysmaticlabs/prysm/v3/consensus-types/primitives"
-	ethpb "github.com/prysmaticlabs/prysm/v3/proto/prysm/v1alpha1"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p/encoder"
+	p2ptypes "github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p/types"
+	"github.com/prysmaticlabs/prysm/v4/beacon-chain/sync"
+	types "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
+	ethpb "github.com/prysmaticlabs/prysm/v4/proto/prysm/v1alpha1"
 )
 
 func init() {
@@ -36,6 +35,9 @@ func init() {
 }
 
 func DownloadApp(cliCtx *cli.Context) error {
+	// TODO: support downloading blobs from a beacon node.
+	return errors.New("unsupported for the latest spec")
+
 	addr := cliCtx.String(DownloadBeaconP2PAddr.Name)
 	slot := cliCtx.Int64(DownloadSlotFlag.Name)
 
@@ -54,7 +56,6 @@ func DownloadApp(cliCtx *cli.Context) error {
 	defer func() {
 		_ = h.Close()
 	}()
-	h.RemoveStreamHandler(identify.IDDelta)
 	// setup enough handlers so we look like a beacon peer
 	// Some clients, including lighthouse, expect a minimum set of protocols before completing
 	// a libp2p connection
@@ -68,7 +69,7 @@ func DownloadApp(cliCtx *cli.Context) error {
 	}
 	setHandler(h, p2p.RPCBlocksByRangeTopicV1, nilHandler)
 	setHandler(h, p2p.RPCBlocksByRangeTopicV2, nilHandler)
-	setHandler(h, p2p.RPCBlobsSidecarsByRangeTopicV1, nilHandler)
+	setHandler(h, p2p.RPCBlobSidecarsByRootTopicV1, nilHandler)
 
 	multiaddr, err := getMultiaddr(ctx, h, addr)
 	if err != nil {
@@ -92,19 +93,17 @@ func DownloadApp(cliCtx *cli.Context) error {
 
 	anyBlobs := false
 	for _, sidecar := range sidecars {
-		if int64(sidecar.BeaconBlockSlot) != slot {
+		if int64(sidecar.Slot) != slot {
 			break
 		}
 
-		if len(sidecar.Blobs) == 0 {
+		if len(sidecar.Blob.Data) == 0 {
 			continue
 		}
 
 		anyBlobs = true
-		for _, blob := range sidecar.Blobs {
-			data := DecodeBlob(blob.Data)
-			_, _ = os.Stdout.Write(data)
-		}
+		data := DecodeBlob(sidecar.Blob.Data)
+		_, _ = os.Stdout.Write(data)
 
 		// stop after the first sidecar with blobs:
 		break
@@ -152,8 +151,9 @@ func retrievePeerID(ctx context.Context, h host.Host, addr string) (peer.ID, err
 	return "", err
 }
 
-func sendBlobsSidecarsByRangeRequest(ctx context.Context, h host.Host, encoding encoder.NetworkEncoding, pid peer.ID, req *ethpb.BlobsSidecarsByRangeRequest) ([]*ethpb.BlobsSidecar, error) {
-	topic := fmt.Sprintf("%s%s", p2p.RPCBlobsSidecarsByRangeTopicV1, encoding.ProtocolSuffix())
+func sendBlobsSidecarsByRangeRequest(ctx context.Context, h host.Host, encoding encoder.NetworkEncoding, pid peer.ID, req *ethpb.BlobsSidecarsByRangeRequest) ([]*ethpb.BlobSidecar, error) {
+	const id = "/eth2/beacon_chain/req/blob_sidecars_by_range/1"
+	topic := fmt.Sprintf("%s%s", id, encoding.ProtocolSuffix())
 
 	stream, err := h.NewStream(ctx, pid, protocol.ID(topic))
 	if err != nil {
@@ -173,7 +173,7 @@ func sendBlobsSidecarsByRangeRequest(ctx context.Context, h host.Host, encoding 
 		return nil, err
 	}
 
-	var blobSidecars []*ethpb.BlobsSidecar
+	var blobSidecars []*ethpb.BlobSidecar
 	for {
 		isFirstChunk := len(blobSidecars) == 0
 		blobs, err := readChunkedBlobsSidecar(stream, encoding, isFirstChunk)
@@ -188,7 +188,7 @@ func sendBlobsSidecarsByRangeRequest(ctx context.Context, h host.Host, encoding 
 	return blobSidecars, nil
 }
 
-func readChunkedBlobsSidecar(stream libp2pcore.Stream, encoding encoder.NetworkEncoding, isFirstChunk bool) (*ethpb.BlobsSidecar, error) {
+func readChunkedBlobsSidecar(stream libp2pcore.Stream, encoding encoder.NetworkEncoding, isFirstChunk bool) (*ethpb.BlobSidecar, error) {
 	var (
 		code   uint8
 		errMsg string
@@ -211,7 +211,7 @@ func readChunkedBlobsSidecar(stream libp2pcore.Stream, encoding encoder.NetworkE
 	if _, err := stream.Read(b); err != nil {
 		return nil, err
 	}
-	sidecar := new(ethpb.BlobsSidecar)
+	sidecar := new(ethpb.BlobSidecar)
 	err = encoding.DecodeWithMaxLength(stream, sidecar)
 	return sidecar, err
 }

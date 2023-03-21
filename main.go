@@ -117,7 +117,7 @@ func TxApp(cliCtx *cli.Context) error {
 	}
 
 	blobs := EncodeBlobs(data)
-	commitments, versionedHashes, aggregatedProof, err := blobs.ComputeCommitmentsAndAggregatedProof()
+	commitments, versionedHashes, proofs, err := blobs.ComputeCommitmentsAndProofs()
 	if err != nil {
 		log.Fatalf("failed to compute commitments: %v", err)
 	}
@@ -137,9 +137,9 @@ func TxApp(cliCtx *cli.Context) error {
 	}
 
 	wrapData := types.BlobTxWrapData{
-		BlobKzgs:           commitments,
-		Blobs:              blobs,
-		KzgAggregatedProof: aggregatedProof,
+		BlobKzgs: commitments,
+		Blobs:    blobs,
+		Proofs:   proofs,
 	}
 	tx := types.NewTx(&txData, types.WithTxWrapData(&wrapData))
 	tx, err = types.SignTx(tx, signer, key)
