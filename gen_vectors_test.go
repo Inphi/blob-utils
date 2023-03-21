@@ -36,7 +36,7 @@ type TestCaseOutput struct {
 	blobs           types.Blobs
 	commitments     []types.KZGCommitment
 	versionedHashes []common.Hash
-	aggregatedProof types.KZGProof
+	proofs          []types.KZGProof
 	txData          types.SignedBlobTx
 	wrapData        types.BlobTxWrapData
 	transaction     *types.Transaction
@@ -92,7 +92,7 @@ func TestGenerateTestVectors(t *testing.T) {
 
 func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput TestCaseInput) (*TestCaseOutput, error) {
 	blobs := EncodeBlobs(hexutil.MustDecode(testCaseInput.Data))
-	commitments, versionedHashes, aggregatedProof, err := blobs.ComputeCommitmentsAndAggregatedProof()
+	commitments, versionedHashes, proofs, err := blobs.ComputeCommitmentsAndProofs()
 	if err != nil {
 		log.Fatalf("failed to compute commitments: %v", err)
 	}
@@ -121,9 +121,9 @@ func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput Tes
 
 	// Generate wrap transaction data
 	wrapData := types.BlobTxWrapData{
-		BlobKzgs:           commitments,
-		Blobs:              blobs,
-		KzgAggregatedProof: aggregatedProof,
+		BlobKzgs: commitments,
+		Blobs:    blobs,
+		Proofs:   proofs,
 	}
 
 	// Generate key from private key string
@@ -143,7 +143,7 @@ func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput Tes
 		blobs:           blobs,
 		commitments:     commitments,
 		versionedHashes: versionedHashes,
-		aggregatedProof: aggregatedProof,
+		proofs:          proofs,
 		txData:          txData,
 		wrapData:        wrapData,
 		transaction:     tx,

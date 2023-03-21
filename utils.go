@@ -25,7 +25,7 @@ func EncodeBlobs(data []byte) types.Blobs {
 		if max > len(data) {
 			max = len(data)
 		}
-		copy(blobs[blobIndex][fieldIndex][:], data[i:max])
+		copy(blobs[blobIndex][fieldIndex*32:], data[i:max])
 	}
 	return blobs
 }
