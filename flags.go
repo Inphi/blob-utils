@@ -59,6 +59,11 @@ var (
 		Usage: "chain-id of the transaction",
 		Value: "1332",
 	}
+	TxCalldata = cli.StringFlag{
+		Name:  "calldata",
+		Usage: "calldata of the transaction",
+		Value: "0x",
+	}
 
 	DownloadBeaconP2PAddr = cli.StringFlag{
 		Name:  "beacon-p2p-addr",
@@ -84,6 +89,7 @@ var TxFlags = []cli.Flag{
 	TxPriorityGasPrice,
 	TxMaxFeePerDataGas,
 	TxChainID,
+	TxCalldata,
 }
 
 var DownloadFlags = []cli.Flag{

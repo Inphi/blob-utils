@@ -52,6 +52,7 @@ func TxApp(cliCtx *cli.Context) error {
 	priorityGasPrice := cliCtx.String(TxPriorityGasPrice.Name)
 	maxFeePerDataGas := cliCtx.String(TxMaxFeePerDataGas.Name)
 	chainID := cliCtx.String(TxChainID.Name)
+	calldata := cliCtx.String(TxCalldata.Name)
 
 	value256, err := uint256.FromHex(value)
 	if err != nil {
@@ -122,6 +123,11 @@ func TxApp(cliCtx *cli.Context) error {
 		log.Fatalf("failed to compute commitments: %v", err)
 	}
 
+	calldataBytes, err := common.ParseHexOrString(calldata)
+	if err != nil {
+		log.Fatalf("failed to parse calldata: %v", err)
+	}
+
 	txData := types.SignedBlobTx{
 		Message: types.BlobTxMessage{
 			ChainID:             view.Uint256View(*uint256.NewInt(chainId.Uint64())),
@@ -133,6 +139,7 @@ func TxApp(cliCtx *cli.Context) error {
 			Value:               view.Uint256View(*value256),
 			To:                  types.AddressOptionalSSZ{Address: (*types.AddressSSZ)(&to)},
 			BlobVersionedHashes: versionedHashes,
+			Data:                calldataBytes,
 		},
 	}
 
@@ -152,7 +159,7 @@ func TxApp(cliCtx *cli.Context) error {
 		return fmt.Errorf("%w: unable to send transaction", err)
 	}
 
-	log.Printf("Transaction submitted. nonce=%d hash=%v", nonce, tx.Hash())
+	log.Printf("Transaction submitted. nonce=%d hash=%v, blobs=%d", nonce, tx.Hash(), len(blobs))
 
 	return nil
 }
