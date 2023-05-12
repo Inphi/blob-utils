@@ -184,6 +184,9 @@ func ProofApp(cliCtx *cli.Context) error {
 	}
 	blobs := EncodeBlobs(data)
 	commitments, versionedHashes, _, err := blobs.ComputeCommitmentsAndProofs()
+	if err != nil {
+		log.Fatalf("failed to compute commitments: %v", err)
+	}
 
 	if blobIndex >= uint64(len(blobs)) {
 		return fmt.Errorf("error reading %d blob", blobIndex)
@@ -198,6 +201,9 @@ func ProofApp(cliCtx *cli.Context) error {
 	ip, _ := hex.DecodeString(inputPoint)
 	copy(x[:], ip)
 	proof, claimedValue, err := ctx.ComputeKZGProof(gokzg4844.Blob(blobs[blobIndex]), x)
+	if err != nil {
+		log.Fatalf("failed to compute proofs: %v", err)
+	}
 
 	pointEvalInput := bytes.Join(
 		[][]byte{
