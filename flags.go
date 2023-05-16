@@ -75,6 +75,22 @@ var (
 		Usage:    "Slot to download blob from",
 		Required: true,
 	}
+
+	ProofBlobFileFlag = cli.StringFlag{
+		Name:     "blob-file",
+		Usage:    "Blob file data",
+		Required: true,
+	}
+	ProofBlobIndexFlag = cli.StringFlag{
+		Name:     "blob-index",
+		Usage:    "Blob index",
+		Required: true,
+	}
+	ProofInputPointFlag = cli.StringFlag{
+		Name:     "input-point",
+		Usage:    "Input point of the proof",
+		Required: true,
+	}
 )
 
 var TxFlags = []cli.Flag{
@@ -95,4 +111,10 @@ var TxFlags = []cli.Flag{
 var DownloadFlags = []cli.Flag{
 	DownloadBeaconP2PAddr,
 	DownloadSlotFlag,
+}
+
+var ProofFlags = []cli.Flag{
+	ProofBlobFileFlag,
+	ProofBlobIndexFlag,
+	ProofInputPointFlag,
 }

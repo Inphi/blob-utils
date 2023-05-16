@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
 
+	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -31,6 +34,12 @@ func main() {
 			Usage:  "download blobs from the beacon net",
 			Action: DownloadApp,
 			Flags:  DownloadFlags,
+		},
+		{
+			Name:   "proof",
+			Usage:  "generate kzg proof for any input point by using jth blob polynomial",
+			Action: ProofApp,
+			Flags:  ProofFlags,
 		},
 	}
 
@@ -161,5 +170,53 @@ func TxApp(cliCtx *cli.Context) error {
 
 	log.Printf("Transaction submitted. nonce=%d hash=%v, blobs=%d", nonce, tx.Hash(), len(blobs))
 
+	return nil
+}
+
+func ProofApp(cliCtx *cli.Context) error {
+	file := cliCtx.String(ProofBlobFileFlag.Name)
+	blobIndex := cliCtx.Uint64(ProofBlobIndexFlag.Name)
+	inputPoint := cliCtx.String(ProofInputPointFlag.Name)
+
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("error reading blob file: %v", err)
+	}
+	blobs := EncodeBlobs(data)
+	commitments, versionedHashes, _, err := blobs.ComputeCommitmentsAndProofs()
+	if err != nil {
+		log.Fatalf("failed to compute commitments: %v", err)
+	}
+
+	if blobIndex >= uint64(len(blobs)) {
+		return fmt.Errorf("error reading %d blob", blobIndex)
+	}
+
+	if len(inputPoint) != 64 {
+		return fmt.Errorf("wrong input point, len is %d", len(inputPoint))
+	}
+
+	ctx, _ := gokzg4844.NewContext4096Insecure1337()
+	var x gokzg4844.Scalar
+	ip, _ := hex.DecodeString(inputPoint)
+	copy(x[:], ip)
+	proof, claimedValue, err := ctx.ComputeKZGProof(gokzg4844.Blob(blobs[blobIndex]), x)
+	if err != nil {
+		log.Fatalf("failed to compute proofs: %v", err)
+	}
+
+	pointEvalInput := bytes.Join(
+		[][]byte{
+			versionedHashes[blobIndex][:],
+			x[:],
+			claimedValue[:],
+			commitments[blobIndex][:],
+			proof[:],
+		},
+		[]byte{},
+	)
+	log.Printf(
+		"\nversionedHash %x \n"+"x %x \n"+"y %x \n"+"commitment %x \n"+"proof %x \n"+"pointEvalInput %x",
+		versionedHashes[blobIndex][:], x[:], claimedValue[:], commitments[blobIndex][:], proof[:], pointEvalInput[:])
 	return nil
 }
