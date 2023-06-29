@@ -8,14 +8,16 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"time"
 
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/holiman/uint256"
-	"github.com/protolambda/ztyp/view"
 
 	"github.com/urfave/cli"
 )
@@ -74,7 +76,6 @@ func TxApp(cliCtx *cli.Context) error {
 	}
 
 	chainId, _ := new(big.Int).SetString(chainID, 0)
-	signer := types.NewDankSigner(chainId)
 
 	ctx := context.Background()
 	client, err := ethclient.DialContext(ctx, addr)
@@ -126,8 +127,7 @@ func TxApp(cliCtx *cli.Context) error {
 		return fmt.Errorf("%w: invalid max_fee_per_data_gas", err)
 	}
 
-	blobs := EncodeBlobs(data)
-	commitments, versionedHashes, proofs, err := blobs.ComputeCommitmentsAndProofs()
+	blobs, commitments, proofs, versionedHashes, err := EncodeBlobs(data)
 	if err != nil {
 		log.Fatalf("failed to compute commitments: %v", err)
 	}
@@ -137,39 +137,43 @@ func TxApp(cliCtx *cli.Context) error {
 		log.Fatalf("failed to parse calldata: %v", err)
 	}
 
-	txData := types.SignedBlobTx{
-		Message: types.BlobTxMessage{
-			ChainID:             view.Uint256View(*uint256.NewInt(chainId.Uint64())),
-			Nonce:               view.Uint64View(nonce),
-			Gas:                 view.Uint64View(gasLimit),
-			GasFeeCap:           view.Uint256View(*gasPrice256),
-			GasTipCap:           view.Uint256View(*priorityGasPrice256),
-			MaxFeePerDataGas:    view.Uint256View(*maxFeePerDataGas256), // needs to be at least the min fee
-			Value:               view.Uint256View(*value256),
-			To:                  types.AddressOptionalSSZ{Address: (*types.AddressSSZ)(&to)},
-			BlobVersionedHashes: versionedHashes,
-			Data:                calldataBytes,
-		},
+	tx := types.NewTx(&types.BlobTx{
+		ChainID:    uint256.MustFromBig(chainId),
+		Nonce:      uint64(nonce),
+		GasTipCap:  priorityGasPrice256,
+		GasFeeCap:  gasPrice256,
+		Gas:        gasLimit,
+		To:         to,
+		Value:      value256,
+		Data:       calldataBytes,
+		BlobFeeCap: maxFeePerDataGas256,
+		BlobHashes: versionedHashes,
+	})
+
+	txWithBlobs := types.NewBlobTxWithBlobs(tx, blobs, commitments, proofs)
+    signedTx, _ := types.SignTx(&txWithBlobs.Transaction, types.NewCancunSigner(chainId), key)
+    txWithBlobs.Transaction = *signedTx
+    
+	rlpData, _ := rlp.EncodeToBytes(txWithBlobs)
+    err = client.Client().CallContext(context.Background(), nil, "eth_sendRawTransaction", hexutil.Encode(rlpData))
+	
+    if err != nil {
+        log.Fatalf("send tx failed: %v", err)
+    } else {
+        log.Println("success")
+    }
+
+    var receipt *types.Receipt
+	for {
+		receipt, err = client.TransactionReceipt(context.Background(), txWithBlobs.Transaction.Hash())
+		if err != nil {
+			time.Sleep(1 * time.Second)
+		} else {
+			break
+		}
 	}
 
-	wrapData := types.BlobTxWrapData{
-		BlobKzgs: commitments,
-		Blobs:    blobs,
-		Proofs:   proofs,
-	}
-	tx := types.NewTx(&txData, types.WithTxWrapData(&wrapData))
-	tx, err = types.SignTx(tx, signer, key)
-	if err != nil {
-		log.Fatalf("Error signing tx: %v", err)
-	}
-
-	err = client.SendTransaction(ctx, tx)
-	if err != nil {
-		return fmt.Errorf("%w: unable to send transaction", err)
-	}
-
-	log.Printf("Transaction submitted. nonce=%d hash=%v, blobs=%d", nonce, tx.Hash(), len(blobs))
-
+    log.Printf("Transaction submitted. nonce=%d hash=%v, block=%d\n", nonce, tx.Hash(), receipt.BlockNumber.Int64())
 	return nil
 }
 
@@ -182,8 +186,7 @@ func ProofApp(cliCtx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("error reading blob file: %v", err)
 	}
-	blobs := EncodeBlobs(data)
-	commitments, versionedHashes, _, err := blobs.ComputeCommitmentsAndProofs()
+	blobs, commitments, _, versionedHashes, err := EncodeBlobs(data)
 	if err != nil {
 		log.Fatalf("failed to compute commitments: %v", err)
 	}
@@ -200,7 +203,7 @@ func ProofApp(cliCtx *cli.Context) error {
 	var x gokzg4844.Scalar
 	ip, _ := hex.DecodeString(inputPoint)
 	copy(x[:], ip)
-	proof, claimedValue, err := ctx.ComputeKZGProof(gokzg4844.Blob(blobs[blobIndex]), x)
+	proof, claimedValue, err := ctx.ComputeKZGProof(gokzg4844.Blob(blobs[blobIndex]), x, 0)
 	if err != nil {
 		log.Fatalf("failed to compute proofs: %v", err)
 	}

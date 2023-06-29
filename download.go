@@ -1,43 +1,20 @@
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
-	"io"
-	"os"
-	"strings"
-	"time"
 
 	"github.com/urfave/cli"
-
-	ma "github.com/multiformats/go-multiaddr"
-
-	"github.com/libp2p/go-libp2p"
-	libp2pcore "github.com/libp2p/go-libp2p/core"
-	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/network"
-	"github.com/libp2p/go-libp2p/core/peer"
-	"github.com/libp2p/go-libp2p/core/protocol"
-	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
-
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p/encoder"
-	p2ptypes "github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p/types"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/sync"
-	types "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	ethpb "github.com/prysmaticlabs/prysm/v4/proto/prysm/v1alpha1"
 )
 
 func init() {
 	// Done to ensure that we are able to download blob chunks with larger chunk sizes (that is 10 MiB post-bellatrix)
-	encoder.MaxChunkSize = 10 << 20
+	// encoder.MaxChunkSize = 10 << 20
 }
 
 func DownloadApp(cliCtx *cli.Context) error {
 	// TODO: support downloading blobs from a beacon node.
 	return errors.New("unsupported for the latest spec")
-
+/*
 	addr := cliCtx.String(DownloadBeaconP2PAddr.Name)
 	slot := cliCtx.Int64(DownloadSlotFlag.Name)
 
@@ -113,8 +90,9 @@ func DownloadApp(cliCtx *cli.Context) error {
 		return fmt.Errorf("no blobs found in requested slots, sidecar count: %d", len(sidecars))
 	}
 	return nil
+	*/
 }
-
+/*
 func getMultiaddr(ctx context.Context, h host.Host, addr string) (ma.Multiaddr, error) {
 	multiaddr, err := ma.NewMultiaddr(addr)
 	if err != nil {
@@ -233,3 +211,4 @@ func readStatusCodeNoDeadline(stream libp2pcore.Stream, encoding encoder.Network
 }
 
 var responseCodeSuccess = byte(0x00)
+*/
