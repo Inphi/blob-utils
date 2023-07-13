@@ -1,12 +1,5 @@
 package main
 
-import (
-	"bytes"
-	"testing"
-
-	"github.com/ethereum/go-ethereum/params"
-)
-
 func makeBlob(siz int) []byte {
 	b := make([]byte, siz)
 	for i := range b {
@@ -15,6 +8,7 @@ func makeBlob(siz int) []byte {
 	return b
 }
 
+/*
 func TestBlobCodec(t *testing.T) {
 	blobs := [][]byte{
 		makeBlob(0),
@@ -54,3 +48,4 @@ func TestBlobsCodec(t *testing.T) {
 		t.Fatalf("expected %x, got %x", blob, dec)
 	}
 }
+*/

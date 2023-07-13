@@ -1,26 +1,6 @@
 package main
 
-import (
-	"context"
-	"fmt"
-	"log"
-	"reflect"
-	"runtime/debug"
-
-	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/network"
-	"github.com/libp2p/go-libp2p/core/protocol"
-	ssz "github.com/prysmaticlabs/fastssz"
-	"github.com/prysmaticlabs/go-bitfield"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p/encoder"
-	"github.com/prysmaticlabs/prysm/v4/beacon-chain/p2p/types"
-	consensustypes "github.com/prysmaticlabs/prysm/v4/consensus-types/primitives"
-	"github.com/prysmaticlabs/prysm/v4/consensus-types/wrapper"
-	ethpb "github.com/prysmaticlabs/prysm/v4/proto/prysm/v1alpha1"
-	"github.com/prysmaticlabs/prysm/v4/proto/prysm/v1alpha1/metadata"
-)
-
+/*
 type rpcHandler func(context.Context, interface{}, network.Stream) error
 
 // adapted from prysm's handler router - https://github.com/prysmaticlabs/prysm/blob/4e28192541625e2e7828928430dbc72eb6c075c4/beacon-chain/sync/rpc.go#L109
@@ -143,3 +123,4 @@ func closeStream(stream network.Stream) {
 		log.Println(err)
 	}
 }
+*/

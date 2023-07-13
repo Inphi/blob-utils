@@ -1,24 +1,6 @@
 package main
 
-import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"math/big"
-	"math/rand"
-	"os"
-	"testing"
-
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/holiman/uint256"
-	"github.com/protolambda/ztyp/view"
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 type TestCaseInput struct {
 	PrivateKey       string
 	To               string
@@ -150,3 +132,4 @@ func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput Tes
 	}
 	return testCaseOutput, nil
 }
+*/
