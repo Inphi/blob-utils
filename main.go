@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -149,31 +151,35 @@ func TxApp(cliCtx *cli.Context) error {
 		BlobFeeCap: maxFeePerDataGas256,
 		BlobHashes: versionedHashes,
 	})
+	signedTx, _ := types.SignTx(tx, types.NewCancunSigner(chainId), key)
+	txWithBlobs := types.NewBlobTxWithBlobs(signedTx, blobs, commitments, proofs)
 
-	txWithBlobs := types.NewBlobTxWithBlobs(tx, blobs, commitments, proofs)
-    signedTx, _ := types.SignTx(&txWithBlobs.Transaction, types.NewCancunSigner(chainId), key)
-    txWithBlobs.Transaction = *signedTx
-    
 	rlpData, _ := rlp.EncodeToBytes(txWithBlobs)
-    err = client.Client().CallContext(context.Background(), nil, "eth_sendRawTransaction", hexutil.Encode(rlpData))
-	
-    if err != nil {
-        log.Fatalf("send tx failed: %v", err)
-    } else {
-        log.Println("success")
-    }
+	err = client.Client().CallContext(context.Background(), nil, "eth_sendRawTransaction", hexutil.Encode(rlpData))
 
-    var receipt *types.Receipt
+	if err != nil {
+		log.Fatalf("failed to send transaction: %v", err)
+	} else {
+		log.Printf("successfully sent transaction. txhash=%v", signedTx.Hash())
+	}
+
+	//var receipt *types.Receipt
 	for {
-		receipt, err = client.TransactionReceipt(context.Background(), txWithBlobs.Transaction.Hash())
-		if err != nil {
+		_, err = client.TransactionReceipt(context.Background(), txWithBlobs.Transaction.Hash())
+		if err == ethereum.NotFound {
 			time.Sleep(1 * time.Second)
+		} else if err != nil {
+			if _, ok := err.(*json.UnmarshalTypeError); ok {
+				// TODO: ignore other errors for now. Some clients are treating the dataGasUsed as big.Int rather than uint64
+				break
+			}
 		} else {
 			break
 		}
 	}
 
-    log.Printf("Transaction submitted. nonce=%d hash=%v, block=%d\n", nonce, tx.Hash(), receipt.BlockNumber.Int64())
+	log.Printf("Transaction included. nonce=%d hash=%v", nonce, tx.Hash())
+	//log.Printf("Transaction included. nonce=%d hash=%v, block=%d", nonce, tx.Hash(), receipt.BlockNumber.Int64())
 	return nil
 }
 
