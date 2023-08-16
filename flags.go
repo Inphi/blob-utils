@@ -49,9 +49,9 @@ var (
 		Usage: "Sets the priority fee per gas",
 		Value: "2000000000",
 	}
-	TxMaxFeePerDataGas = cli.StringFlag{
-		Name:  "max-fee-per-data-gas",
-		Usage: "Sets the max_fee_per_data_gas",
+	TxMaxFeePerBlobGas = cli.StringFlag{
+		Name:  "max-fee-per-blob-gas",
+		Usage: "Sets the max_fee_per_blob_gas",
 		Value: "3000000000",
 	}
 	TxChainID = cli.StringFlag{
@@ -103,7 +103,7 @@ var TxFlags = []cli.Flag{
 	TxGasLimitFlag,
 	TxGasPriceFlag,
 	TxPriorityGasPrice,
-	TxMaxFeePerDataGas,
+	TxMaxFeePerBlobGas,
 	TxChainID,
 	TxCalldata,
 }
