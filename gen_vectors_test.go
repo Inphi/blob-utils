@@ -9,7 +9,7 @@ type TestCaseInput struct {
 	GasLimit         int64
 	GasPrice         string
 	PriorityGasPrice string
-	MaxFeePerDataGas string
+	MaxFeePerBlobGas string
 	Data             string
 }
 
@@ -82,7 +82,7 @@ func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput Tes
 	// Encode fields
 	gasPrice256, _ := DecodeUint256String(testCaseInput.GasPrice)
 	priorityGasPrice256, _ := DecodeUint256String(testCaseInput.PriorityGasPrice)
-	maxFeePerDataGas256, _ := DecodeUint256String(testCaseInput.MaxFeePerDataGas)
+	maxFeePerBlobGas256, _ := DecodeUint256String(testCaseInput.MaxFeePerBlobGas)
 	value256, _ := DecodeUint256String(testCaseInput.Value)
 	to := common.HexToAddress(testCaseInput.To)
 
@@ -94,7 +94,7 @@ func generateTestVector(chainId *big.Int, signer types.Signer, testCaseInput Tes
 			Gas:                 view.Uint64View(testCaseInput.GasLimit),
 			GasFeeCap:           view.Uint256View(*gasPrice256),
 			GasTipCap:           view.Uint256View(*priorityGasPrice256),
-			MaxFeePerDataGas:    view.Uint256View(*maxFeePerDataGas256),
+			MaxFeePerBlobGas:    view.Uint256View(*maxFeePerBlobGas256),
 			Value:               view.Uint256View(*value256),
 			To:                  types.AddressOptionalSSZ{Address: (*types.AddressSSZ)(&to)},
 			BlobVersionedHashes: versionedHashes,

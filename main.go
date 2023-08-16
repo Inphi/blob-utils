@@ -63,7 +63,7 @@ func TxApp(cliCtx *cli.Context) error {
 	gasLimit := cliCtx.Uint64(TxGasLimitFlag.Name)
 	gasPrice := cliCtx.String(TxGasPriceFlag.Name)
 	priorityGasPrice := cliCtx.String(TxPriorityGasPrice.Name)
-	maxFeePerDataGas := cliCtx.String(TxMaxFeePerDataGas.Name)
+	maxFeePerBlobGas := cliCtx.String(TxMaxFeePerBlobGas.Name)
 	chainID := cliCtx.String(TxChainID.Name)
 	calldata := cliCtx.String(TxCalldata.Name)
 
@@ -124,9 +124,9 @@ func TxApp(cliCtx *cli.Context) error {
 		}
 	}
 
-	maxFeePerDataGas256, err := DecodeUint256String(maxFeePerDataGas)
+	maxFeePerBlobGas256, err := DecodeUint256String(maxFeePerBlobGas)
 	if err != nil {
-		return fmt.Errorf("%w: invalid max_fee_per_data_gas", err)
+		return fmt.Errorf("%w: invalid max_fee_per_blob_gas", err)
 	}
 
 	blobs, commitments, proofs, versionedHashes, err := EncodeBlobs(data)
@@ -148,7 +148,7 @@ func TxApp(cliCtx *cli.Context) error {
 		To:         to,
 		Value:      value256,
 		Data:       calldataBytes,
-		BlobFeeCap: maxFeePerDataGas256,
+		BlobFeeCap: maxFeePerBlobGas256,
 		BlobHashes: versionedHashes,
 	})
 	signedTx, _ := types.SignTx(tx, types.NewCancunSigner(chainId), key)
@@ -170,7 +170,7 @@ func TxApp(cliCtx *cli.Context) error {
 			time.Sleep(1 * time.Second)
 		} else if err != nil {
 			if _, ok := err.(*json.UnmarshalTypeError); ok {
-				// TODO: ignore other errors for now. Some clients are treating the dataGasUsed as big.Int rather than uint64
+				// TODO: ignore other errors for now. Some clients are treating the blobGasUsed as big.Int rather than uint64
 				break
 			}
 		} else {
