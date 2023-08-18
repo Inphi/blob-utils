@@ -18,7 +18,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/holiman/uint256"
 
 	"github.com/urfave/cli"
@@ -154,7 +153,7 @@ func TxApp(cliCtx *cli.Context) error {
 	signedTx, _ := types.SignTx(tx, types.NewCancunSigner(chainId), key)
 	txWithBlobs := types.NewBlobTxWithBlobs(signedTx, blobs, commitments, proofs)
 
-	rlpData, _ := rlp.EncodeToBytes(txWithBlobs)
+	rlpData, _ := txWithBlobs.MarshalBinary()
 	err = client.Client().CallContext(context.Background(), nil, "eth_sendRawTransaction", hexutil.Encode(rlpData))
 
 	if err != nil {
