@@ -7,7 +7,7 @@ import (
 var (
 	TxRPCURLFlag = cli.StringFlag{
 		Name:  "rpc-url",
-		Usage: "Address of exuection node JSON-RPC endpoint",
+		Usage: "Address of execution node JSON-RPC endpoint",
 		Value: "http://127.0.0.1:8545",
 	}
 	TxBlobFileFlag = cli.StringFlag{
