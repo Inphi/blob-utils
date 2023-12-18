@@ -11,12 +11,11 @@ import (
 	"os"
 	"time"
 
-	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	gethkzg4844 "github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/holiman/uint256"
 
@@ -149,12 +148,10 @@ func TxApp(cliCtx *cli.Context) error {
 		Data:       calldataBytes,
 		BlobFeeCap: maxFeePerBlobGas256,
 		BlobHashes: versionedHashes,
+		Sidecar:    &types.BlobTxSidecar{Blobs: blobs, Commitments: commitments, Proofs: proofs},
 	})
 	signedTx, _ := types.SignTx(tx, types.NewCancunSigner(chainId), key)
-	txWithBlobs := types.NewBlobTxWithBlobs(signedTx, blobs, commitments, proofs)
-
-	rlpData, _ := txWithBlobs.MarshalBinary()
-	err = client.Client().CallContext(context.Background(), nil, "eth_sendRawTransaction", hexutil.Encode(rlpData))
+	err = client.SendTransaction(context.Background(), signedTx)
 
 	if err != nil {
 		log.Fatalf("failed to send transaction: %v", err)
@@ -164,7 +161,7 @@ func TxApp(cliCtx *cli.Context) error {
 
 	//var receipt *types.Receipt
 	for {
-		_, err = client.TransactionReceipt(context.Background(), txWithBlobs.Transaction.Hash())
+		_, err = client.TransactionReceipt(context.Background(), tx.Hash())
 		if err == ethereum.NotFound {
 			time.Sleep(1 * time.Second)
 		} else if err != nil {
@@ -204,11 +201,10 @@ func ProofApp(cliCtx *cli.Context) error {
 		return fmt.Errorf("wrong input point, len is %d", len(inputPoint))
 	}
 
-	ctx, _ := gokzg4844.NewContext4096Insecure1337()
-	var x gokzg4844.Scalar
+	var x gethkzg4844.Point
 	ip, _ := hex.DecodeString(inputPoint)
 	copy(x[:], ip)
-	proof, claimedValue, err := ctx.ComputeKZGProof(gokzg4844.Blob(blobs[blobIndex]), x, 0)
+	proof, claimedValue, err := gethkzg4844.ComputeProof(gethkzg4844.Blob(blobs[blobIndex]), x)
 	if err != nil {
 		log.Fatalf("failed to compute proofs: %v", err)
 	}
